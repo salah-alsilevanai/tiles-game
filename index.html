@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-container">
+      <div class="controls">
+        <div class="settings">
+          <label for="gridSize">Grid Size:</label>
+          <select id="gridSize">
+            <option value="2x2">2x2</option>
+            <option value="4x4" selected>4x4</option>
+            <option value="6x6">6x6</option>
+          </select>
+          <label for="imageFolder">Image Folder:</label>
+          <input
+            type="file"
+            id="imageFolder"
+            webkitdirectory
+            directory
+            multiple
+          />
+          <button id="startGame">Start Game</button>
+        </div>
+        <div class="stats">
+          <span>Moves: <span id="moves">0</span></span>
+          <span>Matches: <span id="matches">0</span></span>
+        </div>
+      </div>
+      <div id="gameBoard"></div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
