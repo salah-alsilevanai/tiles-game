@@ -28,12 +28,18 @@ body {
   margin-bottom: 15px;
 }
 
-.settings label {
+.player-controls {
+  margin-bottom: 15px;
+}
+
+.settings label,
+.player-controls label {
   margin-right: 10px;
 }
 
 .settings select,
-.settings button {
+.settings button,
+.player-controls select {
   margin-right: 15px;
   padding: 5px 10px;
 }
@@ -42,6 +48,26 @@ body {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#playerScores {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.player-score {
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+}
+
+.player-score.active {
+  background-color: #3498db;
+  color: white;
 }
 
 #gameBoard {

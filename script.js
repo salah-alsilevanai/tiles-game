@@ -6,6 +6,8 @@ class MemoryGame {
     this.moves = 0;
     this.isLocked = false;
     this.mediaUrls = [];
+    this.players = [];
+    this.currentPlayerIndex = 0;
 
     // DOM elements
     this.gameBoard = document.getElementById("gameBoard");
@@ -14,6 +16,9 @@ class MemoryGame {
     this.gridSizeSelect = document.getElementById("gridSize");
     this.imageFolderInput = document.getElementById("imageFolder");
     this.startButton = document.getElementById("startGame");
+    this.playerCountSelect = document.getElementById("playerCount");
+    this.playerScoresDiv = document.getElementById("playerScores");
+    this.currentPlayerDisplay = document.getElementById("currentPlayer");
 
     // Event listeners
     this.startButton.addEventListener("click", () => this.startGame());
@@ -56,7 +61,51 @@ class MemoryGame {
     }
 
     this.resetGame();
+    this.setupPlayers();
     this.setupGrid(rows, cols);
+    this.updatePlayerDisplay();
+  }
+
+  setupPlayers() {
+    const playerCount = parseInt(this.playerCountSelect.value);
+    this.players = Array.from({ length: playerCount }, (_, i) => ({
+      id: i + 1,
+      score: 0,
+      name: `Player ${i + 1}`,
+    }));
+    this.currentPlayerIndex = 0;
+    this.updatePlayerScores();
+  }
+
+  updatePlayerScores() {
+    this.playerScoresDiv.innerHTML = this.players
+      .map(
+        (player) => `
+                <div class="player-score ${
+                  player.id === this.currentPlayer.id ? "active" : ""
+                }">
+                    ${player.name}: ${player.score}
+                </div>
+            `
+      )
+      .join("");
+  }
+
+  updatePlayerDisplay() {
+    this.currentPlayerDisplay.textContent = this.currentPlayer.name;
+    this.updatePlayerScores();
+  }
+
+  get currentPlayer() {
+    return this.players[this.currentPlayerIndex];
+  }
+
+  nextPlayer() {
+    if (!this.lastMatchWasSuccessful) {
+      this.currentPlayerIndex =
+        (this.currentPlayerIndex + 1) % this.players.length;
+      this.updatePlayerDisplay();
+    }
   }
 
   resetGame() {
@@ -138,25 +187,46 @@ class MemoryGame {
     const secondMedia = second.tile.querySelector("video, img");
     const match = firstMedia.src === secondMedia.src;
 
+    this.lastMatchWasSuccessful = match;
     if (match) {
       this.handleMatch(first.tile, second.tile);
     } else {
       this.handleMismatch(first.tile, second.tile);
     }
+
+    setTimeout(() => {
+      this.nextPlayer();
+    }, 1000);
   }
 
   handleMatch(firstTile, secondTile) {
     firstTile.classList.add("matched");
     secondTile.classList.add("matched");
     this.matches++;
+    this.currentPlayer.score++;
     this.updateStats();
+    this.updatePlayerScores();
     this.flippedTiles = [];
 
     if (this.matches === this.tiles.length / 2) {
       setTimeout(() => {
-        alert(`Congratulations! You won in ${this.moves} moves!`);
+        const winners = this.getWinners();
+        const winnerMessage =
+          winners.length > 1
+            ? `It's a tie between ${winners.map((p) => p.name).join(" and ")}!`
+            : `${winners[0].name} wins!`;
+        alert(
+          `Game Over! ${winnerMessage}\nFinal Scores:\n${this.players
+            .map((p) => `${p.name}: ${p.score}`)
+            .join("\n")}`
+        );
       }, 500);
     }
+  }
+
+  getWinners() {
+    const maxScore = Math.max(...this.players.map((p) => p.score));
+    return this.players.filter((p) => p.score === maxScore);
   }
 
   handleMismatch(firstTile, secondTile) {

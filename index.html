@@ -10,6 +10,15 @@
     <div class="game-container">
       <div class="controls">
         <div class="settings">
+          <div class="player-controls">
+            <label for="playerCount">Number of Players:</label>
+            <select id="playerCount">
+              <option value="1">1 Player</option>
+              <option value="2">2 Players</option>
+              <option value="3">3 Players</option>
+              <option value="4">4 Players</option>
+            </select>
+          </div>
           <label for="gridSize">Grid Size:</label>
           <select id="gridSize">
             <option value="2x2">2x2</option>
@@ -27,6 +36,8 @@
           <button id="startGame">Start Game</button>
         </div>
         <div class="stats">
+          <div id="playerScores"></div>
+          <span>Current Player: <span id="currentPlayer">-</span></span>
           <span>Moves: <span id="moves">0</span></span>
           <span>Matches: <span id="matches">0</span></span>
         </div>
