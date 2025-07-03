@@ -14,42 +14,81 @@ body {
 }
 
 .game-container {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #e3e9f0 100%);
+  padding: 28px 28px 20px 28px;
+  border-radius: 18px;
+  box-shadow: 0 4px 32px 0 rgba(52, 152, 219, 0.10), 0 1.5px 6px 0 rgba(44, 62, 80, 0.08);
+  max-width: 520px;
 }
 
 .controls {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .settings {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
+  background: #f7fafd;
+  border-radius: 10px;
+  padding: 18px 16px 12px 16px;
+  box-shadow: 0 1px 4px 0 rgba(52, 152, 219, 0.04);
 }
 
 .player-controls {
   margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .settings label,
 .player-controls label {
   margin-right: 10px;
+  font-weight: 500;
+  color: #2d3a4a;
 }
 
 .settings select,
 .settings button,
 .player-controls select {
   margin-right: 15px;
-  padding: 5px 10px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #d0d7e2;
+  background: #fff;
+  font-size: 1em;
+  color: #2d3a4a;
+  transition: border 0.2s;
+}
+.settings select:focus,
+.settings button:focus,
+.player-controls select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+.settings button {
+  background: linear-gradient(90deg, #3498db 0%, #6dd5fa 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 4px 0 rgba(52, 152, 219, 0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.settings button:hover {
+  background: linear-gradient(90deg, #2980b9 0%, #48c6ef 100%);
+  box-shadow: 0 2px 8px 0 rgba(52, 152, 219, 0.18);
 }
 
 .stats {
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
+  margin-top: 14px;
   flex-wrap: wrap;
   gap: 10px;
+  background: #f7fafd;
+  border-radius: 8px;
+  padding: 10px 12px 6px 12px;
+  font-size: 1.05em;
 }
 
 #playerScores {
@@ -57,34 +96,44 @@ body {
   gap: 15px;
   margin-bottom: 10px;
   width: 100%;
+  font-size: 1em;
 }
 
 .player-score {
-  padding: 5px 10px;
-  border-radius: 5px;
-  background-color: #f0f0f0;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background-color: #e3e9f0;
+  color: #2d3a4a;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
 }
 
 .player-score.active {
-  background-color: #3498db;
-  color: white;
+  background: linear-gradient(90deg, #3498db 0%, #6dd5fa 100%);
+  color: #fff;
 }
 
 #gameBoard {
   display: grid;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .tile {
   width: 100px;
   height: 100px;
-  background-color: #3498db;
-  border-radius: 5px;
+  background: linear-gradient(135deg, #3498db 0%, #6dd5fa 100%);
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.2s;
   position: relative;
   perspective: 1000px;
+  box-shadow: 0 2px 8px 0 rgba(52, 152, 219, 0.10);
+  border: 2px solid #e3e9f0;
+}
+.tile:hover {
+  box-shadow: 0 4px 16px 0 rgba(52, 152, 219, 0.18);
+  transform: scale(1.04);
 }
 
 .tile img,
@@ -93,7 +142,7 @@ body {
   height: 100%;
   object-fit: cover;
   display: none;
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 .tile.flipped img,
@@ -102,17 +151,46 @@ body {
 }
 
 .tile.flipped {
-  transform: rotateY(180deg);
-  background-color: white;
+  transform: rotateY(180deg) scale(1.03);
+  background: #fff;
+  box-shadow: 0 2px 12px 0 rgba(52, 152, 219, 0.12);
 }
 
 .tile.matched {
-  background-color: #2ecc71;
+  background: linear-gradient(90deg, #2ecc71 0%, #a8ff78 100%);
+  border: 2px solid #2ecc71;
+  box-shadow: 0 2px 12px 0 rgba(46, 204, 113, 0.18);
 }
 
 @media (max-width: 600px) {
   .tile {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
   }
+  .game-container {
+    padding: 10px 2vw 10px 2vw;
+    max-width: 98vw;
+  }
+  .settings {
+    padding: 10px 4vw 8px 4vw;
+  }
+  #gameBoard {
+    gap: 7px;
+  }
+}
+/* Collection preview thumbnails */
+#collectionPreview img,
+#collectionPreview video {
+  border-radius: 6px;
+  border: 1.5px solid #e3e9f0;
+  box-shadow: 0 1px 4px 0 rgba(52, 152, 219, 0.08);
+  background: #f7fafd;
+  margin-bottom: 2px;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+#collectionPreview img:hover,
+#collectionPreview video:hover {
+  border: 1.5px solid #3498db;
+  box-shadow: 0 2px 8px 0 rgba(52, 152, 219, 0.18);
+}
 }
