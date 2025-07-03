@@ -22,6 +22,8 @@ class MemoryGame {
 
     // Collection selector
     this.collectionSelector = document.getElementById("collectionSelector");
+    this.collectionCount = document.getElementById("collectionCount");
+    this.collectionPreview = document.getElementById("collectionPreview");
     this.collections = {
       dudububu: this.getDudububuMedia(),
     };
@@ -30,6 +32,7 @@ class MemoryGame {
 
     // Populate selector (in case more collections are added)
     this.updateCollectionSelector();
+    this.updateCollectionPreviewAndCount();
 
     // Event listeners
     this.startButton.addEventListener("click", () => this.startGame());
@@ -81,6 +84,7 @@ class MemoryGame {
         })`;
       }
     }
+    this.updateCollectionPreviewAndCount();
   }
 
   handleMediaUpload(event) {
@@ -111,6 +115,43 @@ class MemoryGame {
     // Optionally update UI note
     const note = document.getElementById("defaultFolderNote");
     if (note) note.textContent = `(${this.collections[collectionKey].label})`;
+    this.updateCollectionPreviewAndCount();
+  }
+
+  updateCollectionPreviewAndCount() {
+    // Show number of images/videos
+    if (this.collectionCount) {
+      this.collectionCount.textContent = `(${this.mediaUrls.length} file${
+        this.mediaUrls.length === 1 ? "" : "s"
+      })`;
+    }
+    // Show previews
+    if (this.collectionPreview) {
+      this.collectionPreview.innerHTML = "";
+      this.mediaUrls.forEach((media, idx) => {
+        let el;
+        if (media.type === "video") {
+          el = document.createElement("video");
+          el.src = media.url;
+          el.muted = true;
+          el.playsInline = true;
+          el.loop = true;
+          el.style.width = "40px";
+          el.style.height = "40px";
+          el.style.objectFit = "cover";
+          el.title = `Video ${idx + 1}`;
+        } else {
+          el = document.createElement("img");
+          el.src = media.url;
+          el.alt = `Image ${idx + 1}`;
+          el.style.width = "40px";
+          el.style.height = "40px";
+          el.style.objectFit = "cover";
+          el.title = `Image ${idx + 1}`;
+        }
+        this.collectionPreview.appendChild(el);
+      });
+    }
   }
 
   startGame() {
