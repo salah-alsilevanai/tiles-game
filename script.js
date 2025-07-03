@@ -222,6 +222,12 @@ class MemoryGame {
 
   setupGridWithMedia(rows, cols, mediaList) {
     this.gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    // Set class for 6x6 grid for smaller gap
+    if (rows === 6 && cols === 6) {
+      this.gameBoard.classList.add("six-by-six");
+    } else {
+      this.gameBoard.classList.remove("six-by-six");
+    }
     // Select random media files for pairs
     const selectedMedia = this.shuffleArray(mediaList).slice(
       0,
@@ -292,6 +298,12 @@ class MemoryGame {
 
   setupGrid(rows, cols) {
     this.gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    // Set class for 6x6 grid for smaller gap
+    if (rows === 6 && cols === 6) {
+      this.gameBoard.classList.add("six-by-six");
+    } else {
+      this.gameBoard.classList.remove("six-by-six");
+    }
 
     // Select random media files for pairs
     const selectedMedia = this.shuffleArray(this.mediaUrls).slice(
