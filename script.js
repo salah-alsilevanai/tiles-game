@@ -20,28 +20,67 @@ class MemoryGame {
     this.playerScoresDiv = document.getElementById("playerScores");
     this.currentPlayerDisplay = document.getElementById("currentPlayer");
 
-    // By default, load dudububu folder media
-    this.loadDefaultDudububuMedia();
+    // Collection selector
+    this.collectionSelector = document.getElementById("collectionSelector");
+    this.collections = {
+      dudububu: this.getDudububuMedia(),
+    };
+    this.currentCollection = "dudububu";
+    this.mediaUrls = this.collections.dudububu;
+
+    // Populate selector (in case more collections are added)
+    this.updateCollectionSelector();
 
     // Event listeners
     this.startButton.addEventListener("click", () => this.startGame());
     this.imageFolderInput.addEventListener("change", (e) =>
       this.handleMediaUpload(e)
     );
+    this.collectionSelector.addEventListener("change", (e) =>
+      this.handleCollectionChange(e)
+    );
   }
 
-  loadDefaultDudububuMedia() {
-    // There are 22 stickers, but check which files exist by name
-    const dudububuFiles = [
-      ...Array.from({ length: 22 }, (_, i) => `sticker${i + 1}.webm`),
-    ];
-    this.mediaUrls = dudububuFiles.map((name) => ({
-      url: `./dudububu/${name}`,
+  getDudububuMedia() {
+    // There are 22 stickers
+    return Array.from({ length: 22 }, (_, i) => ({
+      url: `./dudububu/sticker${i + 1}.webm`,
       type: "video",
     }));
-    // Optionally, visually indicate in the UI that dudububu is selected by default
+  }
+
+  updateCollectionSelector() {
+    // Remove all except dudububu
+    while (this.collectionSelector.options.length > 1) {
+      this.collectionSelector.remove(1);
+    }
+    // Add user-uploaded collections
+    Object.keys(this.collections).forEach((key) => {
+      if (key !== "dudububu") {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = this.collections[key].label || key;
+        this.collectionSelector.appendChild(opt);
+      }
+    });
+    this.collectionSelector.value = this.currentCollection;
+  }
+
+  handleCollectionChange(e) {
+    this.currentCollection = e.target.value;
+    this.mediaUrls = this.collections[this.currentCollection];
+    // Optionally update UI note
     const note = document.getElementById("defaultFolderNote");
-    if (note) note.textContent = "(default: dudububu, using built-in stickers)";
+    if (note) {
+      if (this.currentCollection === "dudububu") {
+        note.textContent = "(using built-in stickers)";
+      } else {
+        note.textContent = `(${
+          this.collections[this.currentCollection].label ||
+          this.currentCollection
+        })`;
+      }
+    }
   }
 
   handleMediaUpload(event) {
@@ -52,18 +91,31 @@ class MemoryGame {
         file.type.startsWith("video/") ||
         file.name.endsWith(".webm")
     );
-    this.mediaUrls = mediaFiles.map((file) => ({
+    if (mediaFiles.length === 0) return;
+    // Generate a unique key for this collection
+    const collectionKey = `collection_${Date.now()}`;
+    this.collections[collectionKey] = mediaFiles.map((file) => ({
       url: URL.createObjectURL(file),
       type:
         file.name.endsWith(".webm") || file.type.startsWith("video/")
           ? "video"
           : "image",
     }));
+    // Add a label for the selector
+    this.collections[collectionKey].label = files[0].webkitRelativePath
+      ? files[0].webkitRelativePath.split("/")[0]
+      : `Collection ${Object.keys(this.collections).length}`;
+    this.currentCollection = collectionKey;
+    this.mediaUrls = this.collections[collectionKey];
+    this.updateCollectionSelector();
+    // Optionally update UI note
+    const note = document.getElementById("defaultFolderNote");
+    if (note) note.textContent = `(${this.collections[collectionKey].label})`;
   }
 
   startGame() {
-    if (this.mediaUrls.length === 0) {
-      alert("Please select media files first!");
+    if (!this.mediaUrls || this.mediaUrls.length === 0) {
+      alert("Please select or upload an image collection first!");
       return;
     }
 
@@ -72,7 +124,7 @@ class MemoryGame {
 
     if (this.mediaUrls.length < totalPairs) {
       alert(
-        `Not enough media files! Please select at least ${totalPairs} files.`
+        `Not enough media files! Please select a collection with at least ${totalPairs} files.`
       );
       return;
     }

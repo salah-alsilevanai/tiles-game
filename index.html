@@ -25,18 +25,24 @@
             <option value="4x4" selected>4x4</option>
             <option value="6x6">6x6</option>
           </select>
-          <label for="imageFolder"
-            >Image Folder:
-            <span id="defaultFolderNote" style="color: #2a8; font-size: 0.95em"
-              >(default: dudububu)</span
-            ></label
-          >
+          <label for="collectionSelector">Image Collection:</label>
+          <select id="collectionSelector">
+            <option value="dudububu" selected>Default (dudububu)</option>
+          </select>
+          <label for="imageFolder">
+            Upload New Collection:
+            <span
+              id="defaultFolderNote"
+              style="color: #2a8; font-size: 0.95em"
+            ></span>
+          </label>
           <input
             type="file"
             id="imageFolder"
             webkitdirectory
             directory
             multiple
+            style="margin-bottom: 8px"
           />
           <button id="startGame">Start Game</button>
         </div>
