@@ -33,11 +33,11 @@ class MemoryGame {
   loadDefaultDudububuMedia() {
     // There are 22 stickers, but check which files exist by name
     const dudububuFiles = [
-      ...Array.from({ length: 22 }, (_, i) => `sticker${i + 1}.webm`)
+      ...Array.from({ length: 22 }, (_, i) => `sticker${i + 1}.webm`),
     ];
     this.mediaUrls = dudububuFiles.map((name) => ({
       url: `./dudububu/${name}`,
-      type: "video"
+      type: "video",
     }));
     // Optionally, visually indicate in the UI that dudububu is selected by default
     const note = document.getElementById("defaultFolderNote");
