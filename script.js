@@ -1,4 +1,9 @@
 class MemoryGame {
+  // Track cumulative stats
+  totalMatchesPlayed = 0;
+  persistentScores = [];
+  // Track game wins for each player
+  gameWins = [];
   constructor() {
     this.tiles = [];
     this.flippedTiles = [];
@@ -19,6 +24,24 @@ class MemoryGame {
     this.playerCountSelect = document.getElementById("playerCount");
     this.playerScoresDiv = document.getElementById("playerScores");
     this.currentPlayerDisplay = document.getElementById("currentPlayer");
+
+    // Fullscreen
+    this.fullscreenBtn = document.getElementById("fullscreenBtn");
+    this.fullscreenInfo = document.getElementById("fullscreenInfo");
+    this.isFullscreen = false;
+    this.fullscreenBtn.addEventListener("click", () => this.toggleFullscreen());
+    // Listen for fullscreen change (for ESC key or other exit)
+    document.addEventListener("fullscreenchange", () => {
+      const container = document.querySelector(".game-container");
+      if (!document.fullscreenElement && this.isFullscreen) {
+        // Exited fullscreen (e.g. via ESC)
+        container.classList.remove("fullscreen");
+        this.fullscreenBtn.classList.remove("fullscreen");
+        this.hideFullscreenInfo();
+        this.isFullscreen = false;
+        this.fullscreenBtn.textContent = "Fullscreen";
+      }
+    });
 
     // Collection selector
     this.collectionSelector = document.getElementById("collectionSelector");
@@ -43,6 +66,50 @@ class MemoryGame {
     this.collectionSelector.addEventListener("change", (e) =>
       this.handleCollectionChange(e)
     );
+  }
+
+  toggleFullscreen() {
+    const container = document.querySelector(".game-container");
+    if (!this.isFullscreen) {
+      // Enter fullscreen
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if (container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen();
+      } else if (container.msRequestFullscreen) {
+        container.msRequestFullscreen();
+      }
+      container.classList.add("fullscreen");
+      this.fullscreenBtn.classList.add("fullscreen");
+      this.showFullscreenInfo();
+      this.isFullscreen = true;
+      this.fullscreenBtn.textContent = "Exit Fullscreen";
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+      container.classList.remove("fullscreen");
+      this.fullscreenBtn.classList.remove("fullscreen");
+      this.hideFullscreenInfo();
+      this.isFullscreen = false;
+      this.fullscreenBtn.textContent = "Fullscreen";
+    }
+  }
+
+  showFullscreenInfo() {
+    if (!this.fullscreenInfo) return;
+    // Remove all info in fullscreen (redundant)
+    this.fullscreenInfo.innerHTML = "";
+    this.fullscreenInfo.style.display = "none";
+  }
+
+  hideFullscreenInfo() {
+    if (this.fullscreenInfo) this.fullscreenInfo.style.display = "none";
   }
 
   getDudububuMedia() {
@@ -213,6 +280,19 @@ class MemoryGame {
       return;
     }
 
+    // Save current scores before resetting if not first game
+    if (this.players && this.players.length > 0) {
+      // Save scores by player id
+      this.persistentScores = this.players.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        score: p.score + (this.persistentScores[i]?.score || 0),
+      }));
+    }
+
+    // Save total matches before resetting
+    this.totalMatchesPlayed += this.matches;
+
     this.resetGame();
     this.setupPlayers();
     // Use only selected media for the game
@@ -246,11 +326,17 @@ class MemoryGame {
 
   setupPlayers() {
     const playerCount = parseInt(this.playerCountSelect.value);
-    this.players = Array.from({ length: playerCount }, (_, i) => ({
-      id: i + 1,
-      score: 0,
-      name: `Player ${i + 1}`,
-    }));
+    // Always reset per-game score, persistentScores is only for game wins
+    this.players = Array.from({ length: playerCount }, (_, i) => {
+      const prev = this.persistentScores[i];
+      const win = this.gameWins[i] || 0;
+      return {
+        id: i + 1,
+        score: 0,
+        name: prev ? prev.name : `Player ${i + 1}`,
+        gameWins: win,
+      };
+    });
     this.currentPlayerIndex = 0;
     this.updatePlayerScores();
   }
@@ -262,7 +348,11 @@ class MemoryGame {
                 <div class="player-score ${
                   player.id === this.currentPlayer.id ? "active" : ""
                 }">
-                    ${player.name}: ${player.score}
+                    ${player.name}: ${
+          player.score
+        } <span style="color:#888;font-size:0.9em;">(Wins: ${
+          player.gameWins || 0
+        })</span>
                 </div>
             `
       )
@@ -272,6 +362,9 @@ class MemoryGame {
   updatePlayerDisplay() {
     this.currentPlayerDisplay.textContent = this.currentPlayer.name;
     this.updatePlayerScores();
+    if (this.isFullscreen) {
+      this.showFullscreenInfo();
+    }
   }
 
   get currentPlayer() {
@@ -294,6 +387,19 @@ class MemoryGame {
     this.isLocked = false;
     this.gameBoard.innerHTML = "";
     this.updateStats();
+    // Optionally update cumulative stats display
+    this.updateCumulativeStats();
+  }
+
+  updateCumulativeStats() {
+    // Show total matches played and persistent scores if desired
+    const totalMatchesDiv = document.getElementById("totalMatchesPlayed");
+    if (totalMatchesDiv) {
+      totalMatchesDiv.textContent = `Total Matches Played: ${
+        this.totalMatchesPlayed + this.matches
+      }`;
+    }
+    // Optionally show persistent scores somewhere else if needed
   }
 
   setupGrid(rows, cols) {
@@ -393,18 +499,26 @@ class MemoryGame {
     this.flippedTiles = [];
 
     if (this.matches === this.tiles.length / 2) {
+      // Add this game's matches to total before next game
+      this.totalMatchesPlayed += this.matches;
+      // At end of game, increment only the winner(s) game-winning score by 1
+      const winners = this.getWinners();
+      if (winners.length > 0) {
+        winners.forEach((winner) => {
+          const idx = winner.id - 1;
+          if (!this.gameWins[idx]) this.gameWins[idx] = 0;
+          this.gameWins[idx] += 1;
+        });
+      }
+      // Update each player's gameWins property for display
+      this.players.forEach((player, i) => {
+        player.gameWins = this.gameWins[i] || 0;
+      });
       setTimeout(() => {
-        const winners = this.getWinners();
-        const winnerMessage =
-          winners.length > 1
-            ? `It's a tie between ${winners.map((p) => p.name).join(" and ")}!`
-            : `${winners[0].name} wins!`;
-        alert(
-          `Game Over! ${winnerMessage}\nFinal Scores:\n${this.players
-            .map((p) => `${p.name}: ${p.score}`)
-            .join("\n")}`
-        );
-      }, 500);
+        this.updatePlayerScores();
+        this.updatePlayerDisplay();
+        this.startGame();
+      }, 800);
     }
   }
 
