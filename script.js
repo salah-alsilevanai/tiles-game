@@ -20,11 +20,28 @@ class MemoryGame {
     this.playerScoresDiv = document.getElementById("playerScores");
     this.currentPlayerDisplay = document.getElementById("currentPlayer");
 
+    // By default, load dudububu folder media
+    this.loadDefaultDudububuMedia();
+
     // Event listeners
     this.startButton.addEventListener("click", () => this.startGame());
     this.imageFolderInput.addEventListener("change", (e) =>
       this.handleMediaUpload(e)
     );
+  }
+
+  loadDefaultDudububuMedia() {
+    // There are 22 stickers, but check which files exist by name
+    const dudububuFiles = [
+      ...Array.from({ length: 22 }, (_, i) => `sticker${i + 1}.webm`)
+    ];
+    this.mediaUrls = dudububuFiles.map((name) => ({
+      url: `./dudububu/${name}`,
+      type: "video"
+    }));
+    // Optionally, visually indicate in the UI that dudububu is selected by default
+    const note = document.getElementById("defaultFolderNote");
+    if (note) note.textContent = "(default: dudububu, using built-in stickers)";
   }
 
   handleMediaUpload(event) {
