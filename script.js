@@ -29,7 +29,8 @@ class MemoryGame {
     };
     this.currentCollection = "dudububu";
     this.mediaUrls = this.collections.dudububu;
-
+    // Track selected images (all selected by default)
+    this.selectedMediaIndexes = new Set(this.mediaUrls.map((_, i) => i));
     // Populate selector (in case more collections are added)
     this.updateCollectionSelector();
     this.updateCollectionPreviewAndCount();
@@ -72,6 +73,8 @@ class MemoryGame {
   handleCollectionChange(e) {
     this.currentCollection = e.target.value;
     this.mediaUrls = this.collections[this.currentCollection];
+    // By default, select all
+    this.selectedMediaIndexes = new Set(this.mediaUrls.map((_, i) => i));
     // Optionally update UI note
     const note = document.getElementById("defaultFolderNote");
     if (note) {
@@ -111,6 +114,8 @@ class MemoryGame {
       : `Collection ${Object.keys(this.collections).length}`;
     this.currentCollection = collectionKey;
     this.mediaUrls = this.collections[collectionKey];
+    // By default, select all
+    this.selectedMediaIndexes = new Set(this.mediaUrls.map((_, i) => i));
     this.updateCollectionSelector();
     // Optionally update UI note
     const note = document.getElementById("defaultFolderNote");
@@ -119,16 +124,22 @@ class MemoryGame {
   }
 
   updateCollectionPreviewAndCount() {
-    // Show number of images/videos
+    // Show number of selected images/videos
     if (this.collectionCount) {
-      this.collectionCount.textContent = `(${this.mediaUrls.length} file${
-        this.mediaUrls.length === 1 ? "" : "s"
-      })`;
+      this.collectionCount.textContent = `(${this.selectedMediaIndexes.size} selected / ${this.mediaUrls.length} total)`;
     }
-    // Show previews
+    // Show previews with selection checkboxes
     if (this.collectionPreview) {
       this.collectionPreview.innerHTML = "";
       this.mediaUrls.forEach((media, idx) => {
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "flex";
+        wrapper.style.flexDirection = "column";
+        wrapper.style.alignItems = "center";
+        wrapper.style.position = "relative";
+        wrapper.style.width = "48px";
+        wrapper.style.margin = "2px";
+
         let el;
         if (media.type === "video") {
           el = document.createElement("video");
@@ -149,31 +160,82 @@ class MemoryGame {
           el.style.objectFit = "cover";
           el.title = `Image ${idx + 1}`;
         }
-        this.collectionPreview.appendChild(el);
+
+        // Checkbox for selection
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = this.selectedMediaIndexes.has(idx);
+        checkbox.style.marginTop = "2px";
+        checkbox.title = "Select/unselect";
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) {
+            this.selectedMediaIndexes.add(idx);
+          } else {
+            this.selectedMediaIndexes.delete(idx);
+          }
+          this.updateCollectionPreviewAndCount();
+        });
+
+        wrapper.appendChild(el);
+        wrapper.appendChild(checkbox);
+        this.collectionPreview.appendChild(wrapper);
       });
+    }
+    // Show note if nothing is selected
+    const note = document.getElementById("selectedImagesNote");
+    if (note) {
+      if (this.selectedMediaIndexes.size === 0) {
+        note.textContent =
+          "No images/videos selected! Please select at least one to play.";
+      } else {
+        note.textContent = "";
+      }
     }
   }
 
   startGame() {
-    if (!this.mediaUrls || this.mediaUrls.length === 0) {
-      alert("Please select or upload an image collection first!");
+    // Only use selected images
+    const selectedMedia = Array.from(this.selectedMediaIndexes).map(
+      (idx) => this.mediaUrls[idx]
+    );
+    if (!selectedMedia || selectedMedia.length === 0) {
+      alert("Please select at least one image or video to play!");
       return;
     }
 
     const [rows, cols] = this.gridSizeSelect.value.split("x").map(Number);
     const totalPairs = (rows * cols) / 2;
 
-    if (this.mediaUrls.length < totalPairs) {
+    if (selectedMedia.length < totalPairs) {
       alert(
-        `Not enough media files! Please select a collection with at least ${totalPairs} files.`
+        `Not enough media files! Please select at least ${totalPairs} images/videos.`
       );
       return;
     }
 
     this.resetGame();
     this.setupPlayers();
-    this.setupGrid(rows, cols);
+    // Use only selected media for the game
+    this.setupGridWithMedia(rows, cols, selectedMedia);
     this.updatePlayerDisplay();
+  }
+
+  setupGridWithMedia(rows, cols, mediaList) {
+    this.gameBoard.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    // Select random media files for pairs
+    const selectedMedia = this.shuffleArray(mediaList).slice(
+      0,
+      (rows * cols) / 2
+    );
+    // Create pairs and shuffle them
+    const tilePairs = [...selectedMedia, ...selectedMedia];
+    const shuffledPairs = this.shuffleArray(tilePairs);
+    // Create tiles
+    shuffledPairs.forEach((media, index) => {
+      const tile = this.createTile(media, index);
+      this.tiles.push(tile);
+      this.gameBoard.appendChild(tile);
+    });
   }
 
   setupPlayers() {
