@@ -29,6 +29,14 @@ class MemoryGame {
     this.fullscreenBtn = document.getElementById("fullscreenBtn");
     this.fullscreenInfo = document.getElementById("fullscreenInfo");
     this.isFullscreen = false;
+    // Detect mobile device
+    const isMobile =
+      /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+        navigator.userAgent
+      );
+    if (isMobile && this.fullscreenBtn) {
+      this.fullscreenBtn.style.display = "none";
+    }
     this.fullscreenBtn.addEventListener("click", () => this.toggleFullscreen());
     // Listen for fullscreen change (for ESC key or other exit)
     document.addEventListener("fullscreenchange", () => {
