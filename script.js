@@ -70,6 +70,15 @@ class MemoryGame {
 
   toggleFullscreen() {
     const container = document.querySelector(".game-container");
+    // Detect mobile device
+    const isMobile =
+      /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+        navigator.userAgent
+      );
+    if (isMobile) {
+      alert("Fullscreen mode is disabled on mobile devices.");
+      return;
+    }
     if (!this.isFullscreen) {
       // Enter fullscreen
       if (container.requestFullscreen) {
